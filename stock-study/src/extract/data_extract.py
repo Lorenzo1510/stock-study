@@ -2,15 +2,15 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 import sys
 sys.path.append(r'C:\Users\loren\OneDrive\Desktop\Workbench\stock-study')
 
 from src.utils.download_ticker import download
-from extractABC import dataExtractABC
+from src.extract.extractABC import DataExtractABC
 
-class dataExtract(dataExtractABC):
+class DataExtract(DataExtractABC):
     def __init__(self, ticker: str) -> None:
 
         self.ticker = ticker
@@ -20,12 +20,13 @@ class dataExtract(dataExtractABC):
 
         self.df = download(self.ticker, self.start_date, self.end_date)
 
-    def process(self) -> pd.DataFrame:
+    def reed(self) -> pd.DataFrame:
         self.clean_data()
         self.normalize()
         self.add_moving_average(span=12)
         self.add_moving_average(span=26)
         self.add_rsi()
+        self.add_macd()
         return self.df
     
     def normalize(self) -> pd.DataFrame: 
@@ -60,13 +61,24 @@ class dataExtract(dataExtractABC):
         rs = avg_gain / avg_loss
         self.df['RSI'] = 100 - (100 / (1 + rs))
         return self.df
-    
+
+    def add_macd(self, short_span: int = 12, long_span: int = 26, signal_span: int = 9) -> pd.DataFrame:
+        self.df['MACD'] = self.df['Adj Close'].ewm(span=short_span, adjust=False).mean() - \
+                          self.df['Adj Close'].ewm(span=long_span, adjust=False).mean()
+        self.df['MACD_signal'] = self.df['MACD'].ewm(span=signal_span, adjust=False).mean()
+        return self.df
+
     def plot_data(self, columns=['Adj Close', 'ADJ_NORMALIZE']) -> None:
+        # Plotting the selected columns
         self.df[columns].plot(figsize=(14, 7))
+        
+        # Aggiungiamo titolo, etichette e legenda
         plt.title(f'{self.ticker} Stock Data')
         plt.xlabel('Date')
         plt.ylabel('Price')
         plt.legend(columns)
+        
+        # Visualizzare il grafico
         plt.show()
 
     def save_to_csv(self) -> None:
@@ -74,7 +86,7 @@ class dataExtract(dataExtractABC):
 
 
 if(__name__ == '__main__'):
-    d = dataExtract('MSFT')
-    d.process()
-    d.save_to_csv()
+    d = DataExtract('MSFT')
+    d.reed()
+    # d.save_to_csv()
     print(d.df)
