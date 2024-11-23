@@ -7,7 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 import sys
-sys.path.append(r'C:\Users\loren\OneDrive\Desktop\Workbench\stock-study')
+sys.path.append(r'C:\Users\loren\OneDrive\Desktop\Workbench\stock-project')
 
 from src.utils.download_ticker import download
 from src.extract.extractABC import DataExtractABC
