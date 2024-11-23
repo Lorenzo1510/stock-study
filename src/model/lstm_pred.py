@@ -13,6 +13,7 @@ class TimeSeriesPredictor:
         self.feature = feature
         self.lookback = lookback
         self.model = None  # Placeholder per il modello ML/Deep Learning
+        self.scaler = None
 
     def prepare_data(self):
         # Creazione di sequenze basate sulla finestra temporale (lookback)
@@ -41,7 +42,7 @@ class TimeSeriesPredictor:
             Dense(1)
         ])
         self.model.compile(optimizer='adam', loss='mse')
-        self.model.fit(self.X_train, self.y_train, epochs=20, batch_size=32, verbose=1)
+        self.model.fit(self.X_train, self.y_train, epochs=20, batch_size=32, verbose=0)
 
     def predict(self):
         logging.info("Previsione serie temporale")
