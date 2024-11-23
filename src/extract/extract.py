@@ -96,4 +96,4 @@ if(__name__ == '__main__'):
     d = DataExtract('MSFT')
     d.read()
     # d.save_to_csv()
-    print(d.df)
+    # print(d.df)
