@@ -92,15 +92,15 @@ class TimeSeriesPredictor:
 
         # Restituisce le previsioni denormalizzate
         predictions_inverse = self.scaler.inverse_transform(predictions.reshape(-1, 1))
-        print(len(predictions_inverse.flatten()))
         return predictions_inverse.reshape(self.out_steps, -1)  # Ritorna una forma corretta
         
-    def evaluate_model(self):
-        """Calcola e restituisce il MAE generico per il test set."""
-        predictions = self.predict()
-        
-        # Calcola il MAE per tutto il test set
-        mae = mean_absolute_error(self.y_test.flatten(), predictions.flatten())
+    def evaluate_model(self): 
+        """Calcola e restituisce il MAE generico per il test set.""" 
+        predictions = self.predict() 
+        # Denormalizza y_test 
+        y_test_denorm = self.scaler.inverse_transform(self.y_test.reshape(-1, 1)) 
+        # Calcola il MAE per tutto il test set 
+        mae = mean_absolute_error(y_test_denorm, predictions.flatten()) 
         return mae
 
 
