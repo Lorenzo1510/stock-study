@@ -15,7 +15,7 @@ class TimeSeriesPredictor:
                  df: pd.DataFrame, 
                  feature: str = 'Adj Close', 
                  lookback: int = 60, 
-                 out_steps: int = 1, 
+                 out_steps: int = 5, 
                  units: int = 50):
         self.df = df
         self.feature = feature
@@ -85,24 +85,23 @@ class TimeSeriesPredictor:
         # Addestramento
         self.model.fit(self.X_train, self.y_train, epochs=50, batch_size=32, verbose=0)
 
-    def predict(self):
-        """Genera previsioni con il modello addestrato."""
-        logging.info("Previsione serie temporale autoregressiva")
-        predictions = self.model.predict(self.X_test)
-
-        # Restituisce le previsioni denormalizzate
-        predictions_inverse = self.scaler.inverse_transform(predictions.reshape(-1, 1))
-        return predictions_inverse.reshape(self.out_steps, -1)  # Ritorna una forma corretta
-        
+    def predict(self): 
+        """Genera previsioni con il modello addestrato.""" 
+        logging.info("Previsione serie temporale autoregressiva") 
+        # Usa l'ultimo segmento di dati storici come input per la previsione 
+        last_data = self.X_test[-1].reshape(1, self.lookback, 1) 
+        predictions = self.model.predict(last_data) 
+        # Restituisce le previsioni denormalizzate 
+        predictions_inverse = self.scaler.inverse_transform(predictions.reshape(-1, 1)) 
+        return predictions_inverse.flatten() 
+    
     def evaluate_model(self): 
         """Calcola e restituisce il MAE generico per il test set.""" 
         predictions = self.predict() 
-        # Denormalizza y_test 
         y_test_denorm = self.scaler.inverse_transform(self.y_test.reshape(-1, 1)) 
-        # Calcola il MAE per tutto il test set 
-        mae = mean_absolute_error(y_test_denorm, predictions.flatten()) 
+        mae = mean_absolute_error(y_test_denorm[-self.out_steps:], predictions) 
         return mae
-
+    
 
 class FeedBack(tf.keras.Model):
     def __init__(self, units, out_steps, num_features):
