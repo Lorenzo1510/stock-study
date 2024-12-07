@@ -8,8 +8,10 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential # type: ignore 
 from tensorflow.keras.layers import LSTM, Dense # type: ignore
 
+from src.model.modelABC import ModelABC
 
-class TimeSeriesPredictor:
+
+class TimeSeriesPredictor(ModelABC):
     def __init__(self, 
                  df: pd.DataFrame, 
                  feature: str = 'Adj Close', 
