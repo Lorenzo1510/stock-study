@@ -28,7 +28,6 @@ class TimeSeriesPredictor(ModelABC):
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.param_grid = {
             'lookback': [30, 60, 90],
-            # 'out_steps': [5, 10],
             'units': [50, 100],
             'epochs': [20, 50],
             'batch_size': [16, 32]
@@ -88,17 +87,14 @@ class TimeSeriesPredictor(ModelABC):
         Esegue una GridSearch per ottimizzare i parametri se viene fornita una griglia.
         :param param_grid: Dizionario con i parametri per la GridSearch, se fornito.
         """
-        logging.info("Addestramento modello autoregressivo LSTM")
 
         # Esegui GridSearch se param_grid è fornito
         if param_grid:
-            logging.info("Avvio GridSearch per ottimizzazione parametri")
             best_config = self.grid_search(param_grid)
             logging.info(f"Migliori parametri trovati: {best_config['best_params']}")
 
             # Aggiorna i parametri del modello con la configurazione ottimale
             self.lookback = best_config['best_params']['lookback']
-            self.out_steps = best_config['best_params']['out_steps']
             self.units = best_config['best_params']['units']
             epochs = best_config['best_params']['epochs']
             batch_size = best_config['best_params']['batch_size']
@@ -107,7 +103,7 @@ class TimeSeriesPredictor(ModelABC):
             epochs = 50
             batch_size = 32
 
-        # Preparare i dati (con eventuali nuovi parametri lookback e out_steps)
+        # Preparare i dati (con eventuali nuovi parametri lookback)
         self.prepare_data()
 
         # Creare e addestrare il modello con i parametri selezionati
@@ -115,15 +111,12 @@ class TimeSeriesPredictor(ModelABC):
         self.model.compile(optimizer='adam', loss='mse')
         self.model.fit(self.X_train, self.y_train, epochs=epochs, batch_size=batch_size, verbose=0)
 
-        logging.info("Addestramento completato con successo")
-
     def grid_search(self, param_grid: Dict[str, list]) -> Dict[str, Any]:
         """
         Esegue la ricerca esaustiva dei parametri con GridSearch.
         :param param_grid: Dizionario con i parametri da ottimizzare e i loro valori.
         :return: Dizionario con la migliore configurazione e il relativo MAE.
         """
-        logging.info("Inizio GridSearch per ottimizzazione dei parametri")
         best_mae = float('inf')
         best_params = None
 
@@ -135,7 +128,6 @@ class TimeSeriesPredictor(ModelABC):
 
             # Aggiornare i parametri del modello
             self.lookback = params.get('lookback', self.lookback)
-            self.out_steps = params.get('out_steps', self.out_steps)
             self.units = params.get('units', self.units)
             epochs = params.get('epochs', 50)
             batch_size = params.get('batch_size', 32)
@@ -162,7 +154,6 @@ class TimeSeriesPredictor(ModelABC):
 
     def predict(self) -> np.ndarray: 
         """Genera previsioni con il modello addestrato.""" 
-        logging.info("Previsione serie temporale autoregressiva") 
         last_data = self.X_test[-1].reshape(1, self.lookback, 1) 
         predictions = self.model.predict(last_data) 
         predictions_inverse = self.scaler.inverse_transform(predictions.reshape(-1, 1)) 
