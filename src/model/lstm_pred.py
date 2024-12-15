@@ -21,6 +21,7 @@ class TimeSeriesPredictor(ModelABC):
                  out_steps: int = 5, 
                  units: int = 50):
         self.df = df
+        self.ticker_name = df.columns.levels[1][0]
         self.feature = feature
         self.lookback = lookback
         self.out_steps = out_steps
@@ -42,9 +43,10 @@ class TimeSeriesPredictor(ModelABC):
         predictions = self.predict() 
         mae = self.evaluate_model() 
         logging.info("DONE! - forecast successfully") 
-        return {
+        return {self.ticker_name: {
             "predictions": predictions, 
             "mae": mae,
+            }
         }
 
     def normalize(self) -> None:
