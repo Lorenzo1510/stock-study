@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, List
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import ParameterGrid
@@ -29,10 +29,10 @@ class TimeSeriesPredictor(ModelABC):
         self.model: Any = None
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.param_grid = {
-            'lookback': [30, 60, 90],
-            'units': [50, 100],
-            'epochs': [20, 50],
-            'batch_size': [16, 32]
+            # 'lookback': [30, 60, 90],
+            # 'units': [50, 100],
+            # 'epochs': [20, 50],
+            # 'batch_size': [16, 32]
         }
 
     def call(self) -> Dict[str, Any]: 
@@ -168,3 +168,37 @@ class TimeSeriesPredictor(ModelABC):
         y_test_denorm = self.scaler.inverse_transform(self.y_test.reshape(-1, 1)) 
         mae = mean_absolute_error(y_test_denorm[-self.out_steps:], predictions) 
         return mae
+
+
+class MultiTimeSeriesPredictor:
+    def __init__(self):
+        """
+        Classe che utilizza TimeSeriesPredictor per una lista di DataFrame.
+        """
+        self.results: Dict[str, Dict[str, Any]] = {}
+
+    def call(self, dfs) -> Dict[str, Dict[str, Any]]:
+        """
+        Esegue la previsione per ogni DataFrame nella lista e memorizza i risultati.
+        
+        :return: Dizionario con i risultati delle previsioni per ogni DataFrame.
+        """
+        logging.info("Inizio elaborazione per tutti i DataFrame")
+
+        for i, df in enumerate(dfs):
+            ticker_name = df.columns.levels[1][0] if hasattr(df.columns, 'levels') else f"DataFrame_{i}"
+            logging.info(f"Elaborazione del DataFrame {ticker_name}")
+
+            try:
+                predictor = TimeSeriesPredictor(
+                    df=df,
+                )
+
+                result = predictor.call()
+                self.results[ticker_name] = result
+
+            except Exception as e:
+                logging.error(f"Errore durante l'elaborazione del DataFrame {ticker_name}: {e}")
+
+        logging.info("Elaborazione completata per tutti i DataFrame")
+        return self.results
