@@ -10,20 +10,22 @@ from src.load.pred_loader import PredLoader
 
 
 class predETL(ETLABC):
+    def __init__(self):
 
-    # ticker_list = ['IBM', 'MSFT', 'BPE.MI']
-    ticker_list = ['IBM', 'BPE.MI']
-    year = datetime.today().strftime('%Y')
-    today = datetime.today().strftime('%d%m')
+        # self.ticker_list = ['IBM', 'MSFT', 'BPE.MI']
+        self.ticker_list = ['IBM', 'BPE.MI']
+        self.year = datetime.today().strftime('%Y')
+        self.today = datetime.today().strftime('%d%m')
 
-    output_path = fr"C:\Users\loren\OneDrive\Desktop\Workbench\stock-project\data\pred\{year}\{today}.json"
+        self.output_path = fr"C:\Users\loren\OneDrive\Desktop\Workbench\stock-project\data\pred\{self.year}\{self.today}.json"
 
-    extract_list = [DataExtract(ticker).read() for ticker in ticker_list]
+        self.extract_list = [DataExtract(ticker).read() for ticker in self.ticker_list]
 
-    # print(extract_list)
+        # print(extract_list)
 
-    transform = [TimeSeriesPredictor(df_ticker).call() for df_ticker in extract_list]
+        self.transform = [TimeSeriesPredictor(df_ticker).call() for df_ticker in self.extract_list]
 
-    # print(transform)
+        # print(transform)
 
-    load_list = [PredLoader(data=transform, output_path=output_path).write()]
+        self.load_list = [PredLoader(data=self.transform, output_path=self.output_path).write()]
+        super().__init__()
